@@ -3,7 +3,8 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "./interfaces/IVeQi.sol";
+import "./../interfaces/IVeQi.sol";
+import "./../contracts/QI.sol";
 
 /// @title xQI
 /// @notice xQI is a token minted when 1 QI is staked in the VeQi protocol
@@ -23,7 +24,8 @@ contract xQI is ERC20 {
     /// @param _amount the amount of QI
     function depositQI(uint256 _amount, address _for) external {
         IERC20(QI).safeTransferFrom(msg.sender, address(this), _amount);
-        IVeQi(VeQi).stakeQI(_amount);
+        IERC20(QI).approve(VeQi, _amount);
+        IVeQi(VeQi).deposit(_amount);
         _mint(_for, _amount);
         emit xQIminted(_for, _amount);
     }
