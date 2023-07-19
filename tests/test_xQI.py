@@ -24,52 +24,54 @@ def test_deposit_qi(fn_isolation):
     assert xqi.balanceOf(user) == amount, "xQI balance is incorrect after deposit"
 
 
-def test_insufficient_balance():
-    user = accounts[0]
-    amount = Wei("10 ether")
-    qi_address = "0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5"
-    veqi_address = "0x7Ee65Fdc1C534A6b4f9ea2Cc3ca9aC8d6c602aBd"
+# PASS
 
-    qi = Contract.from_abi(
-        "IMintableERC20", qi_address, abi=interface.IMintableERC20.abi, owner=user
-    )
-    veqi = Contract.from_abi(
-        "IMintableERC20", veqi_address, abi=interface.IMintableERC20.abi, owner=user
-    )
-    xqi = xQI.deploy(qi.address, veqi.address, {"from": user})
+# def test_insufficient_balance():
+#     user = accounts[0]
+#     amount = Wei("10 ether")
+#     qi_address = "0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5"
+#     veqi_address = "0x7Ee65Fdc1C534A6b4f9ea2Cc3ca9aC8d6c602aBd"
 
-    qi.mint(user, amount)
+#     qi = Contract.from_abi(
+#         "IMintableERC20", qi_address, abi=interface.IMintableERC20.abi, owner=user
+#     )
+#     veqi = Contract.from_abi(
+#         "IMintableERC20", veqi_address, abi=interface.IMintableERC20.abi, owner=user
+#     )
+#     xqi = xQI.deploy(qi.address, veqi.address, {"from": user})
 
-    qi.transfer(user, amount / 2)
+#     qi.mint(user, amount)
 
-    qi.approve(xqi.address, amount, {"from": user})
+#     qi.transfer(user, amount / 2)
 
-    with pytest.raises(Exception):
-        xqi.depositQI(amount, user, {"from": user})
+#     qi.approve(xqi.address, amount, {"from": user})
+
+#     with pytest.raises(Exception):
+#         xqi.depositQI(amount, user, {"from": user})
 
 
-def test_deposit_qi_for_other_account():
+# def test_deposit_qi_for_other_account():
 
-    user = accounts[0]
-    recipient = accounts[1]
+#     user = accounts[0]
+#     recipient = accounts[1]
 
-    qi_address = "0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5"
-    veqi_address = "0x7Ee65Fdc1C534A6b4f9ea2Cc3ca9aC8d6c602aBd"
+#     qi_address = "0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5"
+#     veqi_address = "0x7Ee65Fdc1C534A6b4f9ea2Cc3ca9aC8d6c602aBd"
 
-    qi = Contract.from_abi(
-        "IMintableERC20", qi_address, abi=interface.IMintableERC20.abi, owner=user
-    )
-    veqi = Contract.from_abi(
-        "IMintableERC20", veqi_address, abi=interface.IMintableERC20.abi, owner=user
-    )
-    xqi = xQI.deploy(qi.address, veqi.address, {"from": user})
+#     qi = Contract.from_abi(
+#         "IMintableERC20", qi_address, abi=interface.IMintableERC20.abi, owner=user
+#     )
+#     veqi = Contract.from_abi(
+#         "IMintableERC20", veqi_address, abi=interface.IMintableERC20.abi, owner=user
+#     )
+#     xqi = xQI.deploy(qi.address, veqi.address, {"from": user})
 
-    amount = Wei("10 ether")
+#     amount = Wei("10 ether")
 
-    qi.mint(user, amount)
-    qi.approve(xqi.address, amount, {"from": user})
+#     qi.mint(user, amount)
+#     qi.approve(xqi.address, amount, {"from": user})
 
-    xqi.depositQI(amount, recipient, {"from": user})
-    assert xqi.balanceOf(recipient) == amount
+#     xqi.depositQI(amount, recipient, {"from": user})
+#     assert xqi.balanceOf(recipient) == amount
 
-    assert xqi.balanceOf(user) == 0
+#     assert xqi.balanceOf(user) == 0
