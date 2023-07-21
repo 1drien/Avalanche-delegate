@@ -1,4 +1,16 @@
 import pytest
+from brownie import (
+    MainStaking,
+    BaseRewardPool,
+    Qi,
+    interface,
+    accounts,
+    Wei,
+    Contract,
+    chain,
+    BaseRewardPool,
+    xQI,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -6,3 +18,33 @@ def isolation(
     fn_isolation,
 ):  # TO BE REPLACED BY py_vector.common.testing simple_isolation if issues
     pass
+
+
+@pytest.fixture(scope="module")
+def deploy_Mainstaking():
+    amount = Wei("10 ether")
+
+    user = accounts[0]
+    user_with_qi = accounts.at("0x142eb2ed775e6d497aa8d03a2151d016bbfe7fc2", True)
+    user_with_qi_parameters = {"from": user_with_qi}
+    qi = interface.IMintableERC20("0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5")
+    qi.transfer(user, amount, user_with_qi_parameters)
+
+    staking_token_address = qi.address
+    reward_token_address = "0x1ce0c2827e2ef14d5c4f29a091d735a204794041"
+    operator_address = accounts[1]
+    reward_manager_address = accounts[2]
+
+    base_reward_pool = accounts[0].deploy(
+        BaseRewardPool,
+        staking_token_address,
+        reward_token_address,
+        operator_address,
+        reward_manager_address,
+    )
+
+    mainstaking = MainStaking.deploy({"from": user})
+
+    qi.approve(mainstaking.address, amount, {"from": user})
+
+    return mainstaking, qi, user
