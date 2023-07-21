@@ -49,3 +49,38 @@ def test_withdraw_more_than_balance(deploy_Mainstaking, fn_isolation):
     # This should fail.
     with reverts("Insufficient balance"):
         mainstaking.withdraw(withdraw_amount, {"from": user})
+
+
+def test_multiple_deposits(deploy_Mainstaking, fn_isolation):
+    mainstaking, qi, user = deploy_Mainstaking
+    deposit_amount1 = Wei("10 ether")
+    deposit_amount2 = Wei("5 ether")
+
+    mainstaking.depositQI(deposit_amount1, {"from": user})
+    mainstaking.depositQI(deposit_amount2, {"from": user})
+
+    assert (
+        mainstaking.balanceOf(user) == deposit_amount1 + deposit_amount2
+    ), "Balance is incorrect after multiple deposits"
+
+
+def test_multiple_users_deposit(deploy_Mainstaking, fn_isolation, accounts):
+    mainstaking, qi, user1 = deploy_Mainstaking
+    user2 = accounts[1]
+    user2_with_qi_parameters = {"from": user1}
+    deposit_amount1 = Wei("10 ether")
+    deposit_amount2 = Wei("5 ether")
+
+    qi.transfer(user2, deposit_amount2, user2_with_qi_parameters)
+    qi.approve(mainstaking.address, deposit_amount2, {"from": user2})
+
+    # User's deposits
+    mainstaking.depositQI(deposit_amount1, {"from": user1})
+    mainstaking.depositQI(deposit_amount2, {"from": user2})
+
+    assert (
+        mainstaking.balanceOf(user1) == deposit_amount1
+    ), "Balance of user1 is incorrect after deposit"
+    assert (
+        mainstaking.balanceOf(user2) == deposit_amount2
+    ), "Balance of user2 is incorrect after deposit"
