@@ -84,3 +84,17 @@ def test_multiple_users_deposit(deploy_Mainstaking, fn_isolation, accounts):
     assert (
         mainstaking.balanceOf(user2) == deposit_amount2
     ), "Balance of user2 is incorrect after deposit"
+
+
+
+def test_withdraw_zero(deploy_Mainstaking, fn_isolation):
+    mainstaking, qi, user = deploy_Mainstaking
+    amount = Wei("10 ether")
+    withdraw_amount = Wei("0 ether")
+
+    mainstaking.depositQI(amount, {"from": user})
+
+    # This should fail.
+    with reverts("Must withdraw more than zero"):
+        mainstaking.withdraw(withdraw_amount, {"from": user})
+    
