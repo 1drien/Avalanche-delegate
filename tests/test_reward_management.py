@@ -74,3 +74,30 @@ def test_claim_without_deposit(setup_contracts, fn_isolation):
     # Trying to claim without deposit
     with reverts("Nothing to claim"):
         mainstaking.claimApprove(0, {"from": other_user})
+
+
+def test_claim_after_withdraw(setup_contracts, fn_isolation):
+    qi, xqi, mainstaking, user, amount = setup_contracts
+    value = Wei("10 ether")
+
+    assert mainstaking.balanceOf(user) == value
+    xqi.depositQI(amount, user, {"from": user})
+
+    xqi.withdrawQI(amount, {"from": user})
+
+    # Trying to claim after withdrawal
+    with reverts("Nothing to claim"):
+        mainstaking.claimApprove(0, {"from": user})
+
+
+def test_claim_with_incorrect_qi_value(setup_contracts, fn_isolation):
+    qi, xqi, mainstaking, user, _ = setup_contracts
+    deposit_value = Wei("10 ether")
+    incorrect_value = Wei(
+        "20 ether"
+    )  # This value is incorrect because user only deposited 10 ether
+
+    xqi.depositQI(deposit_value, {"from": user})
+
+    with reverts("Incorrect QI value"):
+        mainstaking.claimApprove(incorrect_value, {"from": user})
