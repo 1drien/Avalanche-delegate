@@ -44,3 +44,33 @@ def test_call_claim_by_other(setup_contracts):
 
     with reverts("Permission Denied"):
         mainstaking.someAction({"from": other_user})
+
+
+def test_multiple_claims(setup_contracts, fn_isolation):
+    qi, xqi, mainstaking, user, amount = setup_contracts
+    value = Wei("10 ether")
+
+    assert mainstaking.balanceOf(user) == value
+    xqi.depositQI(amount, user, {"from": user})
+    user_balance = xqi.balanceOf(user)
+
+    ###First claim
+    tx1 = mainstaking.claimApprove(user_balance)
+    event_data1 = tx1.events["ClaimApproved"]
+    value1 = event_data1[0]["amount"]
+    approval1 = event_data1[0]["isApproved"]
+    assert value1 > 0, "Balance must be strictly positive"
+    assert approval1 == True
+
+    # second claim
+    with reverts("Claim cooldown not yet passed"):
+        tx2 = mainstaking.claimApprove(user_balance)
+
+
+def test_claim_without_deposit(setup_contracts, fn_isolation):
+    qi, xqi, mainstaking, user, _ = setup_contracts
+    other_user = accounts[1]
+
+    # Trying to claim without deposit
+    with reverts("Nothing to claim"):
+        mainstaking.claimApprove(0, {"from": other_user})
