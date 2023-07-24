@@ -62,7 +62,7 @@ def test_multiple_claims(setup_contracts, fn_isolation):
     assert value1 > 0, "Balance must be strictly positive"
     assert approval1 == True
 
-    # second claim
+    ### second claim
     with reverts("Claim cooldown not yet passed"):
         tx2 = mainstaking.claimApprove(user_balance)
 
@@ -71,7 +71,7 @@ def test_claim_without_deposit(setup_contracts, fn_isolation):
     qi, xqi, mainstaking, user, _ = setup_contracts
     other_user = accounts[1]
 
-    # Trying to claim without deposit
+    ### Trying to claim without deposit
     with reverts("Nothing to claim"):
         mainstaking.claimApprove(0, {"from": other_user})
 
@@ -85,7 +85,7 @@ def test_claim_after_withdraw(setup_contracts, fn_isolation):
 
     xqi.withdrawQI(amount, {"from": user})
 
-    # Trying to claim after withdrawal
+    ### Trying to claim after withdrawal
     with reverts("Nothing to claim"):
         mainstaking.claimApprove(0, {"from": user})
 
@@ -95,9 +95,33 @@ def test_claim_with_incorrect_qi_value(setup_contracts, fn_isolation):
     deposit_value = Wei("10 ether")
     incorrect_value = Wei(
         "20 ether"
-    )  # This value is incorrect because user only deposited 10 ether
+    )  ### This value is incorrect because user only deposited 10 ether
 
     xqi.depositQI(deposit_value, {"from": user})
 
     with reverts("Incorrect QI value"):
         mainstaking.claimApprove(incorrect_value, {"from": user})
+
+
+def test_claim_after_qi_balance_change(setup_contracts, fn_isolation):
+    qi, xqi, mainstaking, user, _ = setup_contracts
+    initial_deposit = Wei("10 ether")
+    additional_deposit = Wei("5 ether")
+
+    xqi.depositQI(initial_deposit, {"from": user})
+
+    ### User deposits more QI
+    xqi.depositQI(additional_deposit, {"from": user})
+
+    claim_tx = mainstaking.claimApprove(
+        initial_deposit + additional_deposit, {"from": user}
+    )
+
+    ### Assert the claim was successful
+    event_data = claim_tx.events["ClaimApproved"]
+    claimed_amount = event_data[0]["amount"]
+    approval = event_data[0]["isApproved"]
+    assert (
+        claimed_amount == initial_deposit + additional_deposit
+    ), "Claimed amount is incorrect"
+    assert approval == True, "Claim was not approved"
