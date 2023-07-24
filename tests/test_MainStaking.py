@@ -10,12 +10,16 @@ from brownie import (
     chain,
     BaseRewardPool,
     xQI,
+    reverts
 )
 
+amount = Wei("10 ether")
+deposit_amount1 = Wei("10 ether")
+deposit_amount2 = Wei("5 ether")
 
-def test_deposit_qi(deploy_Mainstaking, fn_isolation):
-    mainstaking, qi, user = deploy_Mainstaking
-    amount = Wei("10 ether")
+# For the first deposit, compares MainStaking balance and deposit amount
+def test_deposit_qi(deploy_mainstaking, fn_isolation):
+    mainstaking, qi, user = deploy_mainstaking
 
     mainstaking.depositQI(amount, {"from": user})
     assert (
@@ -23,9 +27,9 @@ def test_deposit_qi(deploy_Mainstaking, fn_isolation):
     ), "MainStaking balance is incorrect after deposit"
 
 
-def test_withdraw(deploy_Mainstaking, fn_isolation):
-    mainstaking, qi, user = deploy_Mainstaking
-    amount = Wei("10 ether")
+# Checks balances during withdraw
+def test_withdraw(deploy_mainstaking, fn_isolation):
+    mainstaking, qi, user = deploy_mainstaking
     withdraw_amount = Wei("5 ether")
 
     mainstaking.depositQI(amount, {"from": user})
@@ -39,9 +43,9 @@ def test_withdraw(deploy_Mainstaking, fn_isolation):
     ), "Total staked not updated correctly"
 
 
-def test_withdraw_more_than_balance(deploy_Mainstaking, fn_isolation):
-    mainstaking, qi, user = deploy_Mainstaking
-    amount = Wei("10 ether")
+# Asks a withdraw amount above user balance
+def test_withdraw_more_than_balance(deploy_mainstaking, fn_isolation):
+    mainstaking, qi, user = deploy_mainstaking
     withdraw_amount = Wei("20 ether")
 
     mainstaking.depositQI(amount, {"from": user})
@@ -51,10 +55,9 @@ def test_withdraw_more_than_balance(deploy_Mainstaking, fn_isolation):
         mainstaking.withdraw(withdraw_amount, {"from": user})
 
 
-def test_multiple_deposits(deploy_Mainstaking, fn_isolation):
-    mainstaking, qi, user = deploy_Mainstaking
-    deposit_amount1 = Wei("10 ether")
-    deposit_amount2 = Wei("5 ether")
+# Checks balance after multiple QI deposit
+def test_multiple_deposits(deploy_mainstaking, fn_isolation):
+    mainstaking, qi, user = deploy_mainstaking
 
     mainstaking.depositQI(deposit_amount1, {"from": user})
     mainstaking.depositQI(deposit_amount2, {"from": user})
@@ -64,12 +67,11 @@ def test_multiple_deposits(deploy_Mainstaking, fn_isolation):
     ), "Balance is incorrect after multiple deposits"
 
 
-def test_multiple_users_deposit(deploy_Mainstaking, fn_isolation, accounts):
-    mainstaking, qi, user1 = deploy_Mainstaking
+# Checks balances for multiple users
+def test_multiple_users_deposit(deploy_mainstaking, fn_isolation, accounts):
+    mainstaking, qi, user1 = deploy_mainstaking
     user2 = accounts[1]
     user2_with_qi_parameters = {"from": user1}
-    deposit_amount1 = Wei("10 ether")
-    deposit_amount2 = Wei("5 ether")
 
     qi.transfer(user2, deposit_amount2, user2_with_qi_parameters)
     qi.approve(mainstaking.address, deposit_amount2, {"from": user2})
@@ -87,9 +89,9 @@ def test_multiple_users_deposit(deploy_Mainstaking, fn_isolation, accounts):
 
 
 
-def test_withdraw_zero(deploy_Mainstaking, fn_isolation):
-    mainstaking, qi, user = deploy_Mainstaking
-    amount = Wei("10 ether")
+# Throws an error when asking to withdraw zero
+def test_withdraw_zero(deploy_mainstaking, fn_isolation):
+    mainstaking, qi, user = deploy_mainstaking
     withdraw_amount = Wei("0 ether")
 
     mainstaking.depositQI(amount, {"from": user})
