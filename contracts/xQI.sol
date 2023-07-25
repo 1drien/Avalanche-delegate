@@ -22,11 +22,11 @@ contract xQI is ERC20 {
 
     /// @notice Stake QI in VeQi protocol and mint xQI at a 1:1 rate
     /// @param _amount the amount of QI
-    function depositQI(uint256 _amount, address _for) external {
-        IERC20(QI).safeTransferFrom(msg.sender, address(this), _amount);
-        IERC20(QI).approve(VeQi, _amount);
-        IVeQi(VeQi).deposit(_amount);
+    function mintToken(address _for, uint256 _amount) external {
         _mint(_for, _amount);
-        emit xQIminted(_for, _amount);
     }
+
+    function transferToMainStaking(address _for, uint256 _amount) external {
+        transfer(_for, _amount);
+    } 
 }
