@@ -8,7 +8,6 @@ from brownie import (
     Wei,
     Contract,
     chain,
-    BaseRewardPool,
     xQI,
 )
 
@@ -21,7 +20,7 @@ def isolation(
 
 
 @pytest.fixture(scope="module")
-def deploy_Mainstaking():
+def deploy_mainstaking():
     amount = Wei("10 ether")
 
     user = accounts[0]
@@ -43,7 +42,10 @@ def deploy_Mainstaking():
         reward_manager_address,
     )
 
-    mainstaking = MainStaking.deploy({"from": user})
+    veqi = interface.IMintableERC20("0x7Ee65Fdc1C534A6b4f9ea2Cc3ca9aC8d6c602aBd")
+    mainstaking = MainStaking.deploy(qi.address, veqi.address, {"from": user})
+    xqi = xQI.deploy(qi.address, veqi.address, mainstaking.address, {"from": user})
+    mainstaking.__MainStaking_init(xqi.address, {"from": user})
 
     qi.approve(mainstaking.address, amount, {"from": user})
 
