@@ -16,14 +16,15 @@ contract MainStaking is Initializable {
     xQI private xqi;
     address public immutable QI;
     address public immutable VeQi;
+    mapping(address => uint256) private claimedReward;
 
     constructor(address _QI, address _VeQi) {
         QI = _QI;
         VeQi = _VeQi;
     }
 
-    event xQIMinted(address indexed user, uint256 xqi_amount);
-    event RewardWithdrawed(uint256 reward);
+    event xQIMinted(address user, uint256 xqi_amount);
+    event RewardWithdrawed(address user, uint256 avax_amount);
 
 
     function __MainStaking_init(address _xQI) external {
@@ -34,18 +35,20 @@ contract MainStaking is Initializable {
     /// @notice Stake QI in VeQi protocol and mint xQI at a 1:1 rate
     /// @param _amount the amount of QI
     function depositQI(uint256 _amount) external {
+        require(_amount > 0, "QI required for deposit");
         IERC20(QI).safeTransferFrom(msg.sender, address(this), _amount);
         IERC20(QI).approve(VeQi, _amount);
         IVeQi(VeQi).deposit(_amount);
-        xqi.mintToken(_amount);
-        xqi.transferToMainStaking(address(this), _amount);
+        xqi.mintToken(msg.sender, _amount);
         emit xQIMinted(msg.sender, _amount);
     }
 
 
     /// @notice User withdraws belonging rewards
     function withdrawReward() external {
+        require(xqi.balanceOf(msg.sender) > 0, "xQI required for withdraw");
         uint256 reward = 0;
-        emit RewardWithdrawed(reward);
+        claimedReward[msg.sender] += reward;
+        emit RewardWithdrawed(msg.sender, reward);
     }
 }
