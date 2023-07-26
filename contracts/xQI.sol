@@ -32,12 +32,7 @@ contract xQI is ERC20 {
 
     /// @notice Stake QI in VeQi protocol and mint xQI at a 1:1 rate
     /// @param _amount the amount of QI
-    function mintToken(uint256 _amount) external onlyOperator {
-        _mint(operator, _amount);
+    function mintToken(address _for, uint256 _amount) external onlyOperator {
+        _mint(_for, _amount);
     }
-
-    function transferToMainStaking(address _for, uint256 _amount) external onlyOperator {
-        require(balanceOf(address(this)) >= _amount);
-        transfer(_for, _amount);
-    } 
 }
