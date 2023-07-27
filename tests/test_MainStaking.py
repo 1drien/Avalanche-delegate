@@ -19,11 +19,10 @@ deposit_amount2 = Wei("5 ether")
 
 # For the first deposit, compares MainStaking balance and deposit amount
 def test_deposit_qi(deploy_mainstaking, fn_isolation):
-    mainstaking, qi, user = deploy_mainstaking
-
+    mainstaking, qi, xqi, user = deploy_mainstaking
     mainstaking.depositQI(amount, {"from": user})
     assert (
-        mainstaking.balanceOf(user) == amount
+        qi.balanceOf(mainstaking.address) == xqi.balanceOf(user)
     ), "MainStaking balance is incorrect after deposit"
 
 

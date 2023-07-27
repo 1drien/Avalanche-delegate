@@ -43,10 +43,10 @@ def deploy_mainstaking():
     )
 
     veqi = interface.IMintableERC20("0x7Ee65Fdc1C534A6b4f9ea2Cc3ca9aC8d6c602aBd")
-    mainstaking = MainStaking.deploy(qi.address, veqi.address, {"from": user})
-    xqi = xQI.deploy(qi.address, veqi.address, mainstaking.address, {"from": user})
-    mainstaking.__MainStaking_init(xqi.address, {"from": user})
+    xqi = xQI.deploy(qi.address, veqi.address, {"from": user})
+    mainstaking = MainStaking.deploy(qi.address, veqi.address, xqi, {"from": user})
+    xqi.setOperator(mainstaking)
 
     qi.approve(mainstaking.address, amount, {"from": user})
 
-    return mainstaking, qi, user
+    return mainstaking, qi, xqi, user
