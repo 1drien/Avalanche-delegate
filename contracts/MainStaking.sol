@@ -28,13 +28,14 @@ contract MainStaking {
 
     mapping(address => uint256) public balances;
 
-    // Mock depositQI method
-    function depositQI(uint256 _amount, address _user) external returns (bool) {
-        balances[_user] += _amount;
-        return true;
+    function deposit(uint256 amount) public {
+        require(
+            QI.transferFrom(msg.sender, address(this), amount),
+            "Transfer failed"
+        );
+        balances[msg.sender] += amount;
     }
 
-    // Mock withdrawQI method
     function withdrawQI(
         uint256 _amount,
         address _user
@@ -44,7 +45,6 @@ contract MainStaking {
         return true;
     }
 
-    // Mock balanceOf method
     function balanceOf(address _user) external view returns (uint256) {
         return balances[_user];
     }
@@ -62,29 +62,23 @@ contract MainStaking {
         _;
     }
 
-    function claimApprove(
-        uint256 amount
-    ) external onlyOwner claimCooldown returns (bool) {
-        require(amount > 0, "Balance must be strictly positive");
+    function claim(uint256 amount, address _user) external claimCooldown {
+        require(balances[_user] > 0, "Nothing to claim");
+        require(amount > 0, "Claim amount must be strictly positive");
         require(
-            xQI.balanceOf(msg.sender) >= amount,
+            xQI.balanceOf(_user) >= amount,
             "Insufficient xQI balance to claim"
         );
 
-        _lastClaimTime[msg.sender] = block.timestamp;
+        // Deduct the claimed amount from the user's balance
+        balances[_user] -= amount;
 
-        emit ClaimApproved(msg.sender, amount, true);
+        // Update the last claim time
+        _lastClaimTime[_user] = block.timestamp;
 
-        return true;
-    }
+        emit ClaimApproved(_user, amount, true);
 
-    function claim(uint256 amount) external onlyOwner {
-        require(
-            amount <= xQI.balanceOf(msg.sender),
-            "Claim amount exceeds available balance"
-        );
-
-        // Transfer the xQI from this contract to the owner
-        xQI.safeTransfer(msg.sender, amount);
+        // Transfer the xQI from this contract to the user
+        xQI.safeTransfer(_user, amount);
     }
 }

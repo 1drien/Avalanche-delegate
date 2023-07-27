@@ -32,6 +32,6 @@ def setup_contracts(accounts, interface, xQI, MainStaking):
 
     qi.approve(xqi.address, amount, parameter)
 
-    mainstaking = MainStaking.deploy(xqi.address, parameter)
+    mainstaking = MainStaking.deploy(qi.address, xqi.address, parameter)
 
     return qi, xqi, mainstaking, user, amount

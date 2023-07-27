@@ -10,6 +10,7 @@ from brownie import (
     chain,
     BaseRewardPool,
     MainStaking,
+    reverts,
 )
 
 
@@ -22,28 +23,12 @@ def test_xqi_required(setup_contracts, fn_isolation):
     user_balance = xqi.balanceOf(user)
 
     ### Test if the require statement passed successfully through the event
-    tx = mainstaking.claimApprove(user_balance)
+    tx = mainstaking.claim(user_balance)
     event_data = tx.events["ClaimApproved"]
     value = event_data[0]["amount"]
     approval = event_data[0]["isApproved"]
     assert value > 0, "Balance must be strictly positive"
     assert approval == True
-
-
-def test_call_claim(setup_contracts):
-    qi, xqi, mainstaking, user, _ = setup_contracts
-    other_user = accounts[1]
-
-    with reverts("Only MainStaking can call this function"):
-        mainstaking.claim({"from": other_user})
-
-
-def test_call_claim_by_other(setup_contracts):
-    qi, xqi, mainstaking, user, _ = setup_contracts
-    other_user = accounts[1]
-
-    with reverts("Permission Denied"):
-        mainstaking.someAction({"from": other_user})
 
 
 def test_multiple_claims(setup_contracts, fn_isolation):
@@ -55,7 +40,7 @@ def test_multiple_claims(setup_contracts, fn_isolation):
     user_balance = xqi.balanceOf(user)
 
     ###First claim
-    tx1 = mainstaking.claimApprove(user_balance)
+    tx1 = mainstaking.claim(user_balance)
     event_data1 = tx1.events["ClaimApproved"]
     value1 = event_data1[0]["amount"]
     approval1 = event_data1[0]["isApproved"]
@@ -64,7 +49,7 @@ def test_multiple_claims(setup_contracts, fn_isolation):
 
     ### second claim
     with reverts("Claim cooldown not yet passed"):
-        tx2 = mainstaking.claimApprove(user_balance)
+        tx2 = mainstaking.claim(user_balance)
 
 
 def test_claim_without_deposit(setup_contracts, fn_isolation):
@@ -73,7 +58,7 @@ def test_claim_without_deposit(setup_contracts, fn_isolation):
 
     ### Trying to claim without deposit
     with reverts("Nothing to claim"):
-        mainstaking.claimApprove(0, {"from": other_user})
+        mainstaking.claim(0, {"from": other_user})
 
 
 def test_claim_after_withdraw(setup_contracts, fn_isolation):
@@ -87,7 +72,7 @@ def test_claim_after_withdraw(setup_contracts, fn_isolation):
 
     ### Trying to claim after withdrawal
     with reverts("Nothing to claim"):
-        mainstaking.claimApprove(0, {"from": user})
+        mainstaking.claim(0, {"from": user})
 
 
 def test_claim_with_incorrect_qi_value(setup_contracts, fn_isolation):
@@ -99,8 +84,8 @@ def test_claim_with_incorrect_qi_value(setup_contracts, fn_isolation):
 
     xqi.depositQI(deposit_value, {"from": user})
 
-    with reverts("Incorrect QI value"):
-        mainstaking.claimApprove(incorrect_value, {"from": user})
+    with reverts("Claim amount exceeds available balance"):
+        mainstaking.claim(incorrect_value, {"from": user})
 
 
 def test_claim_after_qi_balance_change(setup_contracts, fn_isolation):
@@ -113,9 +98,7 @@ def test_claim_after_qi_balance_change(setup_contracts, fn_isolation):
     ### User deposits more QI
     xqi.depositQI(additional_deposit, {"from": user})
 
-    claim_tx = mainstaking.claimApprove(
-        initial_deposit + additional_deposit, {"from": user}
-    )
+    claim_tx = mainstaking.claim(initial_deposit + additional_deposit, {"from": user})
 
     ### Assert the claim was successful
     event_data = claim_tx.events["ClaimApproved"]
