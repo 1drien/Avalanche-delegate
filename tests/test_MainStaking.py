@@ -24,13 +24,37 @@ def test_depositXQI(deploy_mainstaking, fn_isolation):
 
     mainstaking.depositQI(amount, parameter)
     initial_balance = xqi.balanceOf(user)
-    print(initial_balance)
-    print(xqi.balanceOf(mainstaking))
-    
     xqi.approve(mainstaking, amount, parameter)
     mainstaking.depositXQI(amount, parameter)
-    assert(xqi.balanceOf(user) == initial_balance - amount, "MainStaking xQI Balance is incorrect")
-    assert(xqi.BalanceOf(mainstaking) == amount)
+    assert(xqi.balanceOf(user) == initial_balance - amount, "User xQI Balance is incorrect")
+    assert(xqi.balanceOf(mainstaking) == amount, "MainStaking xQI Balance is incorrect")
+
+
+def test_withdrawXQI(deploy_mainstaking, fn_isolation):
+    mainstaking, qi, xqi, user = deploy_mainstaking
+    parameter = {"from" : user}
+
+    mainstaking.depositQI(amount, parameter)
+    xqi.approve(mainstaking, amount, parameter)
+    mainstaking.depositXQI(amount, parameter)
+
+
+    mainstaking.withdrawXQI(amount, parameter)
+    assert(xqi.balanceOf(user) == amount, "User xQI Balance is incorrect")
+    assert(xqi.balanceOf(mainstaking) == 0, "MainStaking xQI Balance is incorrect")
+
+
+def test_more_than_balance_withdrawXQI(deploy_mainstaking, fn_isolation):
+    mainstaking, qi, xqi, user = deploy_mainstaking
+    parameter = {"from" : user}
+
+    mainstaking.depositQI(amount, parameter)
+    xqi.approve(mainstaking, amount, parameter)
+    mainstaking.depositXQI(amount, parameter)
+
+    with reverts("Witdraw amount axceeds balance"):
+        mainstaking.withdrawXQI(amount*2, parameter)
+
 
 
 # For the first deposit, compares MainStaking balance and deposit amount
