@@ -30,7 +30,7 @@ contract MainStaking is Ownable {
         xqi = xQI(_xQI);
     }
 
-    function setAddressRewarder(BaseRewardPool _rewarder) external onlyOwner {
+    function setRewarder(BaseRewardPool _rewarder) external onlyOwner {
         rewarder = _rewarder;
     }
 
