@@ -17,6 +17,22 @@ amount = Wei("10 ether")
 deposit_amount1 = Wei("10 ether")
 deposit_amount2 = Wei("5 ether")
 
+
+def test_depositXQI(deploy_mainstaking, fn_isolation):
+    mainstaking, qi, xqi, user = deploy_mainstaking
+    parameter = {"from" : user}
+
+    mainstaking.depositQI(amount, parameter)
+    initial_balance = xqi.balanceOf(user)
+    print(initial_balance)
+    print(xqi.balanceOf(mainstaking))
+    
+    xqi.approve(mainstaking, amount, parameter)
+    mainstaking.depositXQI(amount, parameter)
+    assert(xqi.balanceOf(user) == initial_balance - amount, "MainStaking xQI Balance is incorrect")
+    assert(xqi.BalanceOf(mainstaking) == amount)
+
+
 # For the first deposit, compares MainStaking balance and deposit amount
 def test_deposit_qi(deploy_mainstaking, fn_isolation):
     mainstaking, qi, xqi, user = deploy_mainstaking
