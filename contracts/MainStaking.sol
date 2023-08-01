@@ -19,12 +19,14 @@ contract MainStaking is Ownable {
     address public immutable VeQi;
     BaseRewardPool public rewarder;
     mapping(address => uint256) public xQIBalance;
-    mapping(address => uint256) public claimedReward;
+    mapping(address => uint256) public rewardLeft;
+
 
     event xQIMinted(address user, uint256 xqi_amount);
     event RewardWithdrawed(address user, uint256 avax_amount);
     event DepositXQIFrom(address user, uint256 xqi_amount);
     event WithdrawXQIFrom(address user, uint256 xqi_amount);
+
 
     constructor(address _QI, address _VeQi, address _xQI) {
         QI = _QI;
@@ -32,9 +34,11 @@ contract MainStaking is Ownable {
         xqi = xQI(_xQI);
     }
 
+
     function setRewarder(BaseRewardPool _rewarder) external onlyOwner {
         rewarder = _rewarder;
     }
+
 
     function depositXQI(uint256 _amount) external {
         IERC20(xqi).safeTransferFrom(msg.sender, address(this), _amount);
@@ -43,14 +47,13 @@ contract MainStaking is Ownable {
         emit DepositXQIFrom(msg.sender, _amount);
     }
 
+
     function withdrawXQI(uint256 _amount) external {
         xQIBalance[msg.sender] -= _amount;
         IERC20(xqi).safeTransfer(msg.sender, _amount);
         rewarder.withdrawFor(msg.sender, _amount, true);
         emit WithdrawXQIFrom(msg.sender, _amount);
     }
-
-
 
 
     /// @notice Stake QI in VeQi protocol and mint xQI at a 1:1 rate
@@ -61,5 +64,11 @@ contract MainStaking is Ownable {
         IVeQi(VeQi).deposit(_amount);
         xqi.mintToken(msg.sender, _amount);
         emit xQIMinted(msg.sender, _amount);
+    }
+
+
+    function withdrawReward() external {
+        uint256 amount = rewardLeft[msg.sender];
+        // TODO : withdraw avax rewards
     }
 }
