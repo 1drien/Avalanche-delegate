@@ -56,6 +56,33 @@ def test_more_than_balance_withdrawXQI(deploy_mainstaking, fn_isolation):
         mainstaking.withdrawXQI(amount*2, parameter)
 
 
+def test_only_owner():
+    user = accounts[0]
+    qi = interface.IMintableERC20("0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5")
+
+    veqi = interface.IMintableERC20("0x7Ee65Fdc1C534A6b4f9ea2Cc3ca9aC8d6c602aBd")
+    xqi = xQI.deploy(qi.address, veqi.address, {"from": user})
+    mainstaking = MainStaking.deploy(qi.address, veqi.address, xqi, {"from": user})
+    xqi.setOperator(mainstaking)
+
+    staking_token_address = qi.address
+    reward_token_address = "0x1ce0c2827e2ef14d5c4f29a091d735a204794041"
+    operator_address = mainstaking
+    reward_manager_address = accounts[2]
+
+    base_reward_pool = accounts[0].deploy(
+        BaseRewardPool,
+        staking_token_address,
+        reward_token_address,
+        operator_address,
+        reward_manager_address,
+    )
+
+    with reverts("Only callable by owner / MainStaking"):
+        mainstaking.setRewarder(base_reward_pool, {"from" : user})
+
+
+
 
 # For the first deposit, compares MainStaking balance and deposit amount
 def test_deposit_qi(deploy_mainstaking, fn_isolation):
