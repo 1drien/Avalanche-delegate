@@ -56,7 +56,7 @@ def test_more_than_balance_withdrawXQI(deploy_mainstaking, fn_isolation):
         mainstaking.withdrawXQI(amount*2, parameter)
 
 
-def test_only_owner():
+def test_only_owner(deploy_mainstaking, fn_isolation):
     user = accounts[0]
     qi = interface.IMintableERC20("0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5")
 
@@ -82,6 +82,27 @@ def test_only_owner():
         mainstaking.setRewarder(base_reward_pool, {"from" : user})
 
 
+def test_depositXQI_zero_amount(deploy_mainstaking, fn_isolation):
+    mainstaking, qi, xqi, user = deploy_mainstaking
+    parameter = {"from" : user}
+
+    mainstaking.depositQI(amount, parameter)
+    initial_balance = xqi.balanceOf(user)
+    xqi.approve(mainstaking, amount, parameter)
+    with reverts("Cannnot deposit 0 token"):
+        mainstaking.depositXQI(0, parameter)
+
+
+def test_withdrawXQI_zero_amount(deploy_mainstaking, fn_isolation):
+    mainstaking, qi, xqi, user = deploy_mainstaking
+    parameter = {"from" : user}
+
+    mainstaking.depositQI(amount, parameter)
+    xqi.approve(mainstaking, amount, parameter)
+    mainstaking.depositXQI(amount, parameter)
+
+    with reverts("Cannot withdraw 0 token"):
+        mainstaking.withdrawXQI(0, parameter)
 
 
 # For the first deposit, compares MainStaking balance and deposit amount
