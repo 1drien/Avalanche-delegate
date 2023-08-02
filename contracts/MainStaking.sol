@@ -89,22 +89,15 @@ contract MainStaking {
 
     function claim(uint256 amount, address _user) external claimCooldown {
         require(xQIBalance[_user] > 0, "Nothing to claim");
-        require(amount > 0, "Claim amount must be strictly positive");
         require(
             xqi.balanceOf(_user) >= amount,
             "Insufficient xQI balance to claim"
         );
 
-        // Deduct the claimed amount from the user's balance
-        xQIBalance[_user] -= amount;
-
         // Update the last claim time
         _lastClaimTime[_user] = block.timestamp;
 
         emit ClaimApproved(_user, amount, true);
-
-        // Transfer the xQI from this contract to the user
-        IERC20(xqi).safeTransfer(_user, amount);
 
         // Get the reward amount
         uint256 rewardAmount = rewarder.earned(_user, address(rewardToken));
