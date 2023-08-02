@@ -36,6 +36,7 @@ contract MainStaking is Ownable {
 
 
     function setRewarder(BaseRewardPool _rewarder) external onlyOwner {
+        require(address(rewarder) == address(0), "Rewarder already set");
         rewarder = _rewarder;
     }
 
