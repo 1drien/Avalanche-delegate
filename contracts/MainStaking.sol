@@ -66,10 +66,4 @@ contract MainStaking is Ownable {
         xqi.mintToken(msg.sender, _amount);
         emit xQIMinted(msg.sender, _amount);
     }
-
-
-    function withdrawReward() external {
-        uint256 amount = rewardLeft[msg.sender];
-        // TODO : withdraw avax rewards
-    }
 }
