@@ -24,6 +24,8 @@ contract MainStaking {
     uint256 public cooldownPeriod = 1 days;
     mapping(address => uint256) private _lastClaimTime;
 
+    uint256 public feeRate = 500; // Fee rate in basis points (1 basis point = 0.01%)
+
     event Deposit(address indexed user, uint256 amount);
     event Withdrawal(address indexed user, uint256 amount);
     event ClaimApproved(address indexed user, uint256 amount, bool isApproved);
@@ -48,6 +50,14 @@ contract MainStaking {
 
     function setAddressRewarder(BaseRewardPool _rewarder) external onlyOwner {
         rewarder = _rewarder;
+    }
+
+    function setFeeRate(uint256 _feeRate) external onlyOwner {
+        require(
+            _feeRate >= 200 && _feeRate <= 500,
+            "Fee rate should be between 2% and 5%"
+        );
+        feeRate = _feeRate;
     }
 
     function depositXQI(uint256 _amount) external {
@@ -101,6 +111,12 @@ contract MainStaking {
 
         // Get the reward amount
         uint256 rewardAmount = rewarder.earned(_user, address(rewardToken));
+
+        // Calculate fees
+        uint256 feeAmount = (rewardAmount * feeRate) / 10000; // Divided by 10000 to convert basis points to a decimal
+
+        // Subtract fees from reward
+        rewardAmount -= feeAmount;
 
         claimedReward[_user] += rewardAmount;
 
