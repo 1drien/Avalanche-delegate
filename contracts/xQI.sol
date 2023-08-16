@@ -12,21 +12,25 @@ contract xQI is ERC20 {
     using SafeERC20 for IERC20;
     address public immutable QI;
     address public immutable VeQi;
-
-    event xQIminted(address indexed user, uint256 amount);
+    address public operator;
 
     constructor(address _QI, address _VeQi) ERC20("xQI", "xQI") {
         QI = _QI;
         VeQi = _VeQi;
     }
 
+    modifier onlyOperator() {
+        require(msg.sender == operator, "Only Operator");
+        _;
+    }
+
+    function setOperator(address _operator) external {
+        operator = _operator;
+    }
+
     /// @notice Stake QI in VeQi protocol and mint xQI at a 1:1 rate
     /// @param _amount the amount of QI
-    function depositQI(uint256 _amount, address _for) external {
-        IERC20(QI).safeTransferFrom(msg.sender, address(this), _amount);
-        IERC20(QI).approve(VeQi, _amount);
-        IVeQi(VeQi).deposit(_amount);
+    function mintToken(address _for, uint256 _amount) external onlyOperator {
         _mint(_for, _amount);
-        emit xQIminted(_for, _amount);
     }
 }
