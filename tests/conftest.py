@@ -38,4 +38,6 @@ def setup_contracts(accounts, interface, xQI, MainStaking):
         qi.address, xqi.address, reward_token.address, veqi.address, {"from": user}
     )
 
+    xqi.setOperator(mainstaking)
+
     return qi, xqi, mainstaking, user, amount
