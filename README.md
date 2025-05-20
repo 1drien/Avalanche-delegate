@@ -41,6 +41,6 @@ This smart contract implements a staking mechanism for QI tokens on the Avalanch
 ## Installation & Deployment
 
 ```bash
-git clone https://github.com/yourusername/qi-staking-avalanche.git
+git clone https://github.com/1drien/Avalanche-delegate.git
 cd qi-staking-avalanche
 npm install
